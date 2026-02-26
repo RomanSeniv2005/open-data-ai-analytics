@@ -2,26 +2,34 @@ import pandas as pd
 import os
 
 
-def load_ev_data(filepath):
-    """Функція для завантаження та первинної фільтрації даних про електромобілі."""
-    print(f"Пошук файлу за шляхом: {filepath}")
+def load_data(filepath):
+    print(f"Завантаження даних з {filepath}...")
 
-    if os.path.exists(filepath):
-        try:
-            # У реальному проєкті тут ми б завантажували CSV:
-            # df = pd.read_csv(filepath)
-            print("Файл знайдено. Імітуємо завантаження даних у pandas DataFrame...")
-            print("Фільтруємо дані за типом пального 'Електро'...")
-            print("Дані успішно завантажено!")
-            return True
-        except Exception as e:
-            print(f"Помилка при читанні файлу: {e}")
-            return False
-    else:
-        print("Помилка: Файл не знайдено. Перевірте наявність датасету в data/raw/")
-        return False
+    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    full_path = os.path.join(base_dir, filepath)
+
+    if not os.path.exists(full_path):
+        print(f"Файл не знайдено за шляхом: {full_path}")
+        return None
+
+    try:
+        df = pd.read_csv(full_path, sep=';', low_memory=False)
+        print(f"Успішно завантажено {len(df)} рядків!")
+
+        fuel_cols = [col for col in df.columns if 'пальне' in col.lower() or 'fuel' in col.lower()]
+        if fuel_cols:
+            col_name = fuel_cols[0]
+            df = df[df[col_name].astype(str).str.contains('ЕЛЕКТРО', case=False, na=False)]
+            print(f"Після фільтрації залишилось {len(df)} електромобілів.")
+
+        return df
+    except Exception as e:
+        print(f"Помилка завантаження: {e}")
+        return None
 
 
 if __name__ == "__main__":
-    # Шлях до файлу (відносно кореня репозиторію)
-    load_ev_data("data/raw/vehicles_data.csv")
+    df = load_data("data/raw/reestrtz01.01.2026.csv")
+    if df is not None:
+        print("Перші 3 рядки датасету:")
+        print(df.head(3))

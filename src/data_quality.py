@@ -1,11 +1,19 @@
 import pandas as pd
+from data_load import load_data
 
-def clean_ev_data():
-    print("Розпочато перевірку якості даних про електромобілі...")
-    print("- Видалення дублікатів VIN-кодів...")
-    print("- Обробка пропущених значень у колонці 'Ємність батареї'...")
-    print("- Перевірка аномалій у роках випуску (відкидання авто з майбутнього)...")
-    print("Дані успішно очищено та готові до аналізу!")
+
+def clean_data(df):
+    print("Початок очистки даних...")
+    df_cleaned = df.dropna(how='all')
+
+    initial_len = len(df_cleaned)
+    df_cleaned = df_cleaned.drop_duplicates()
+    print(f"Видалено {initial_len - len(df_cleaned)} дублікатів.")
+
+    return df_cleaned
+
 
 if __name__ == "__main__":
-    clean_ev_data()
+    df = load_data("data/raw/reestrtz01.01.2026.csv")
+    if df is not None:
+        clean_df = clean_data(df)
