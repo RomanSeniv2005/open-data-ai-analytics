@@ -27,9 +27,14 @@ jobs:
         run: |
           mkdir -p artifacts/selfhosted
           echo "Running visualization on self-hosted runner"
+          set +e
           python3 -m visualization > artifacts/selfhosted/run.log 2>&1
+          EXIT_CODE=$?
+          cat artifacts/selfhosted/run.log
+          exit $EXIT_CODE
 
       - name: Upload artifacts
+        if: ${{ always() }}
         uses: actions/upload-artifact@v4
         with:
           name: artifacts-selfhosted
