@@ -43,17 +43,21 @@ jobs:
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
           if [ -f pyproject.toml ]; then pip install -e .; fi
 
-      - name: Run module
+      - name: Run module and save log
         if: ${{ github.event_name != 'workflow_dispatch' || github.event.inputs.module == 'all' || github.event.inputs.module == matrix.module }}
         env:
           PYTHONPATH: src
         run: |
           mkdir -p artifacts/${{ matrix.module }}
           echo "Running ${{ matrix.module }}"
+          set +e
           python -m ${{ matrix.module }} > artifacts/${{ matrix.module }}/run.log 2>&1
+          EXIT_CODE=$?
+          cat artifacts/${{ matrix.module }}/run.log
+          exit $EXIT_CODE
 
       - name: Upload artifacts
-        if: ${{ github.event_name != 'workflow_dispatch' || github.event.inputs.module == 'all' || github.event.inputs.module == matrix.module }}
+        if: ${{ always() && (github.event_name != 'workflow_dispatch' || github.event.inputs.module == 'all' || github.event.inputs.module == matrix.module) }}
         uses: actions/upload-artifact@v4
         with:
           name: artifacts-${{ matrix.module }}
