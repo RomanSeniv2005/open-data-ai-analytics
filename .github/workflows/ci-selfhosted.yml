@@ -11,24 +11,30 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Check Python
+      - name: Show runner environment
         run: |
-          python3 --version
-          pip3 --version
+          uname -m
+          which python3 || true
+          python3 --version || true
 
-      - name: Install dependencies
+      - name: Create clean CI virtual environment
         run: |
-          python3 -m pip install --upgrade pip
-          if [ -f requirements.txt ]; then pip3 install -r requirements.txt; fi
+          rm -rf .ci-venv
+          /usr/bin/env -u VIRTUAL_ENV python3 -m venv .ci-venv
+          source .ci-venv/bin/activate
+          python --version
+          pip install --upgrade pip
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
       - name: Run visualization on self-hosted runner
         env:
           PYTHONPATH: src
         run: |
           mkdir -p artifacts/selfhosted
+          source .ci-venv/bin/activate
           echo "Running visualization on self-hosted runner"
           set +e
-          python3 -m visualization > artifacts/selfhosted/run.log 2>&1
+          python -m visualization > artifacts/selfhosted/run.log 2>&1
           EXIT_CODE=$?
           cat artifacts/selfhosted/run.log
           exit $EXIT_CODE
