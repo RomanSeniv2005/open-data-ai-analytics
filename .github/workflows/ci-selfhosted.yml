@@ -1,0 +1,36 @@
+name: CI (self-hosted)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  run-local-module:
+    runs-on: [self-hosted]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check Python
+        run: |
+          python3 --version
+          pip3 --version
+
+      - name: Install dependencies
+        run: |
+          python3 -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then pip3 install -r requirements.txt; fi
+
+      - name: Run one module
+        env:
+          PYTHONPATH: src
+        run: |
+          mkdir -p artifacts/selfhosted
+          echo "Running visualization on self-hosted runner"
+          python3 -m visualization > artifacts/selfhosted/run.log 2>&1
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: artifacts-selfhosted
+          path: artifacts/selfhosted
