@@ -11,30 +11,19 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Use local venv
+      - name: Install dependencies (clean env)
         run: |
-          source /Users/roman/Desktop/open-data-ai-analytics/venv/bin/activate
-          python --version
-          pip --version
+          python3 -m pip install --upgrade pip
+          pip3 install pandas numpy matplotlib seaborn scikit-learn openpyxl
 
-      - name: Install dependencies
-        run: |
-          source /Users/roman/Desktop/open-data-ai-analytics/venv/bin/activate
-          python -m pip install --upgrade pip
-          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-
-      - name: Run one module
+      - name: Run module
         env:
           PYTHONPATH: src
         run: |
-          source /Users/roman/Desktop/open-data-ai-analytics/venv/bin/activate
           mkdir -p artifacts/selfhosted
           echo "Running visualization on self-hosted runner"
-          set +e
-          python -m visualization > artifacts/selfhosted/run.log 2>&1
-          EXIT_CODE=$?
+          python3 -m visualization > artifacts/selfhosted/run.log 2>&1
           cat artifacts/selfhosted/run.log
-          exit $EXIT_CODE
 
       - name: Upload artifacts
         if: ${{ always() }}
