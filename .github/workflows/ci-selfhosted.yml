@@ -11,24 +11,27 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Check Python
+      - name: Use local venv
         run: |
-          python3 --version
-          pip3 --version
+          source /Users/roman/Desktop/open-data-ai-analytics/venv/bin/activate
+          python --version
+          pip --version
 
       - name: Install dependencies
         run: |
-          python3 -m pip install --upgrade pip
-          if [ -f requirements.txt ]; then pip3 install -r requirements.txt; fi
+          source /Users/roman/Desktop/open-data-ai-analytics/venv/bin/activate
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
       - name: Run one module
         env:
           PYTHONPATH: src
         run: |
+          source /Users/roman/Desktop/open-data-ai-analytics/venv/bin/activate
           mkdir -p artifacts/selfhosted
           echo "Running visualization on self-hosted runner"
           set +e
-          python3 -m visualization > artifacts/selfhosted/run.log 2>&1
+          python -m visualization > artifacts/selfhosted/run.log 2>&1
           EXIT_CODE=$?
           cat artifacts/selfhosted/run.log
           exit $EXIT_CODE
