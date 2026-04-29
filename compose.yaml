@@ -1,0 +1,129 @@
+services:
+  db:
+    image: postgres:15
+    container_name: open_data_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: mydb
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    networks:
+      - app_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d mydb"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  data_load:
+    build:
+      context: ./data_load
+    container_name: data_load_service
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./data:/app/data
+      - ./reports:/app/reports
+    networks:
+      - app_network
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: mydb
+      DB_USER: user
+      DB_PASSWORD: password
+
+  data_quality_analysis:
+    build:
+      context: ./data_quality_analysis
+    container_name: data_quality_service
+    depends_on:
+      db:
+        condition: service_healthy
+      data_load:
+        condition: service_started
+    volumes:
+      - ./reports:/app/reports
+    networks:
+      - app_network
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: mydb
+      DB_USER: user
+      DB_PASSWORD: password
+
+  data_research:
+    build:
+      context: ./data_research
+    container_name: data_research_service
+    depends_on:
+      db:
+        condition: service_healthy
+      data_load:
+        condition: service_started
+    volumes:
+      - ./reports:/app/reports
+    networks:
+      - app_network
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: mydb
+      DB_USER: user
+      DB_PASSWORD: password
+
+  visualization:
+    build:
+      context: ./visualization
+    container_name: visualization_service
+    depends_on:
+      db:
+        condition: service_healthy
+      data_load:
+        condition: service_started
+      data_research:
+        condition: service_started
+    volumes:
+      - ./plots:/app/plots
+      - ./reports:/app/reports
+    networks:
+      - app_network
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: mydb
+      DB_USER: user
+      DB_PASSWORD: password
+
+  web:
+    build:
+      context: ./web
+    container_name: web_service
+    restart: unless-stopped
+    depends_on:
+      data_quality_analysis:
+        condition: service_started
+      data_research:
+        condition: service_started
+      visualization:
+        condition: service_started
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./reports:/app/reports
+      - ./plots:/app/plots
+    networks:
+      - app_network
+
+networks:
+  app_network:
+    driver: bridge
+
+volumes:
+  db_data:
