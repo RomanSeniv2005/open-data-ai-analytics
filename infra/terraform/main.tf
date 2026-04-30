@@ -79,6 +79,31 @@ resource "azurerm_network_security_group" "nsg" {
     destination_address_prefix = "*"
   }
 
+
+  security_rule {
+    name                       = "Allow-Grafana-3000"
+    priority                   = 1003
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "3000"
+    source_address_prefix      = "*"
+    destination_address_prefix = "*"
+  }
+
+  security_rule {
+    name                       = "Allow-Prometheus-9090"
+    priority                   = 1004
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "9090"
+    source_address_prefix      = "*"
+    destination_address_prefix = "*"
+  }
+
   tags = {
     project = "open-data-ai-analytics"
     lab     = "azure-terraform-cloud-init"
@@ -152,4 +177,10 @@ resource "azurerm_linux_virtual_machine" "vm" {
     project = "open-data-ai-analytics"
     lab     = "azure-terraform-cloud-init"
   }
+}
+
+provider "azurerm" {
+  features {}
+
+  skip_provider_registration = true
 }
