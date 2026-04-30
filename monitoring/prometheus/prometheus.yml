@@ -1,4 +1,3 @@
-cat > monitoring/prometheus/prometheus.yml <<'EOF'
 global:
   scrape_interval: 15s
 
@@ -14,4 +13,3 @@ scrape_configs:
   - job_name: "cadvisor"
     static_configs:
       - targets: ["cadvisor:8080"]
-EOF
